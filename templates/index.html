@@ -4,287 +4,198 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador y Simulador de Autómatas</title>
-    <!-- Fuente moderna Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --primary: rgb(79, 70, 229);
             --primary-hover: rgb(67, 56, 202);
-            --bg-light: rgb(238, 242, 255);
+            --bg-accent: rgb(238, 242, 255);
             --success-bg: rgb(209, 250, 229);
             --success-text: rgb(6, 95, 70);
             --text-dark: rgb(31, 41, 55);
-            --text-muted: rgb(107, 114, 128);
-            --card-bg: #ffffff;
-            --border: rgb(229, 231, 235);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
+            --border-color: rgb(229, 231, 235);
         }
 
         body {
-            background-color: #f8fafc;
-            color: var(--text-dark);
-            padding: 2rem 1rem;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
+            font-family: Arial, sans-serif;
+            max-width: 900px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
+            padding: 20px;
+            background-color: #f9fafb;
+            color: var(--text-dark);
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        header h1 {
+        h1, h2 {
             color: var(--primary);
-            font-size: 2.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
         }
 
-        header p {
-            color: var(--text-muted);
-            font-size: 1rem;
+        /* Estilos de botones */
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
         }
 
-        .grid-layout {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
+        button:hover {
+            background-color: var(--primary-hover);
         }
 
-        @media (min-width: 900px) {
-            .grid-layout {
-                grid-template-columns: 380px 1fr;
-            }
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 1.5rem;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .card h2 {
-            font-size: 1.25rem;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-            font-weight: 600;
-            border-bottom: 2px solid var(--bg-light);
-            padding-bottom: 0.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-dark);
-        }
-
+        /* Campos de texto y selección */
         input[type="text"], select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
             outline: none;
-            transition: all 0.2s ease;
         }
 
         input[type="text"]:focus, select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
 
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
+        /* Secciones principales */
+        .seccion {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 0.75rem 1.25rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.2s ease;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
-        .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .alert {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            margin-top: 1rem;
-            display: none;
-        }
-
-        .alert-error {
-            background-color: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
-
-        .diagram-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .diagram-box {
-            text-align: center;
-            background: var(--bg-light);
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px dashed var(--primary);
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .diagram-box img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 6px;
-        }
-
+        /* Tablas */
         table {
-            width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
-            font-size: 0.875rem;
+            width: 100%;
+            margin-top: 10px;
         }
 
         th, td {
-            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
             text-align: center;
-            border-bottom: 1px solid var(--border);
         }
 
         th {
-            background-color: var(--bg-light);
+            background-color: var(--bg-accent);
             color: var(--primary);
-            font-weight: 600;
         }
 
-        .qr-section {
-            text-align: center;
-            background: var(--bg-light);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1rem;
+        /* Mensajes de alerta */
+        .alerta-error {
+            color: #b91c1c;
+            background-color: #fef2f2;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: inline-block;
         }
 
-        .qr-section img {
-            width: 140px;
-            height: 140px;
+        .alerta-exito {
+            color: var(--success-text);
+            background-color: var(--success-bg);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        /* Sección de imágenes del autómata */
+        .contenedor-imagen {
+            background-color: var(--bg-accent);
+            padding: 15px;
             border-radius: 8px;
-            margin-top: 0.75rem;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .contenedor-imagen img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Sección del código QR */
+        .qr-box {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            background: var(--bg-accent);
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .qr-box img {
             border: 2px solid var(--primary);
+            border-radius: 6px;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Generador y Simulador de Autómatas</h1>
-            <p>Convierte expresiones regulares a AFN/AFD y simula cadenas de texto</p>
-        </header>
+    <h1>Generador y Simulador de Autómatas</h1>
 
-        <div class="grid-layout">
-            <!-- Panel Izquierdo: Formularios -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    <!-- 1. Expresión Regular -->
+    <div class="seccion">
+        <h2>1. Expresión Regular</h2>
+        <label for="er">Ingresa la ER (Alfabeto: a, b, c): </label>
+        <input type="text" id="er" placeholder="Ej: (a|b)*c">
+        <button onclick="generarAutomata()">Generar Autómata</button>
+        <div id="mensaje-er" class="alerta-error" style="display:none;"></div>
+    </div>
 
-                <!-- Tarjeta 1: Expresión Regular -->
-                <div class="card">
-                    <h2>1. Expresión Regular</h2>
-                    <div class="form-group">
-                        <label for="er">Ingresa la ER (Alfabeto: a, b, c):</label>
-                        <input type="text" id="er" placeholder="Ej: (a|b)*c">
-                    </div>
-                    <button class="btn" onclick="generarAutomata()">Generar Autómata</button>
-                    <div id="mensaje-er" class="alert alert-error"></div>
-                </div>
+    <!-- Diagrama AFN -->
+    <div class="seccion">
+        <h2>Diagrama AFN</h2>
+        <div class="contenedor-imagen">
+            <img id="img-afn" src="" alt="AFN" style="display:none;">
+            <span id="placeholder-afn">Aún no se ha generado un autómata</span>
+        </div>
+    </div>
 
-                <!-- Tarjeta 2: Simulación de Cadenas -->
-                <div class="card">
-                    <h2>2. Probar Cadena</h2>
-                    <div class="form-group">
-                        <label for="cadena">Cadena a evaluar:</label>
-                        <input type="text" id="cadena" placeholder="Ej: abbc">
-                    </div>
-                    <div class="form-group">
-                        <label for="tipo-automata">Evaluar en:</label>
-                        <select id="tipo-automata">
-                            <option value="afd">AFD (Determinista)</option>
-                            <option value="afn">AFN (No Determinista)</option>
-                        </select>
-                    </div>
-                    <button class="btn" onclick="probarCadena()">Simular</button>
-                    <div id="resultado-simulacion" class="alert" style="display:none;"></div>
-                </div>
+    <!-- Diagrama AFD -->
+    <div class="seccion">
+        <h2>Diagrama AFD</h2>
+        <div class="contenedor-imagen">
+            <img id="img-afd" src="" alt="AFD" style="display:none;">
+            <span id="placeholder-afd">Aún no se ha generado un autómata</span>
+        </div>
+    </div>
 
-                <!-- Tarjeta 3: Código QR -->
-                <div class="qr-section">
-                    <p style="font-size: 0.875rem; font-weight: 600; color: var(--primary);">Escanea para probar en tu móvil:</p>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://proyecto-automatas-laz2.onrender.com" alt="Código QR de la App">
-                </div>
+    <!-- Tabla de Transiciones -->
+    <div class="seccion">
+        <h2>Tabla de Transiciones (AFD)</h2>
+        <div id="contenedor-tabla">
+            <p>Sin datos para mostrar</p>
+        </div>
+    </div>
 
-            </div>
+    <!-- 2. Probar Cadena -->
+    <div class="seccion">
+        <h2>2. Probar Cadena</h2>
+        <label for="cadena">Cadena: </label>
+        <input type="text" id="cadena" placeholder="Ej: abbc">
 
-            <!-- Panel Derecho: Visualización y Tablas -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <label for="tipo-automata">Evaluar en: </label>
+        <select id="tipo-automata">
+            <option value="afd">AFD</option>
+            <option value="afn">AFN</option>
+        </select>
 
-                <div class="card">
-                    <h2>Diagrama AFN</h2>
-                    <div class="diagram-box">
-                        <img id="img-afn" src="" alt="El diagrama AFN se mostrará aquí" style="display:none;">
-                        <span id="placeholder-afn" style="color: var(--text-muted);">Aún no se ha generado un autómata</span>
-                    </div>
-                </div>
+        <button onclick="probarCadena()">Simular</button>
+        <div id="resultado-simulacion" style="display:none;"></div>
+    </div>
 
-                <div class="card">
-                    <h2>Diagrama AFD</h2>
-                    <div class="diagram-box">
-                        <img id="img-afd" src="" alt="El diagrama AFD se mostrará aquí" style="display:none;">
-                        <span id="placeholder-afd" style="color: var(--text-muted);">Aún no se ha generado un autómata</span>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2>Tabla de Transiciones (AFD)</h2>
-                    <div id="contenedor-tabla">
-                        <p style="color: var(--text-muted); text-align: center;">Sin datos para mostrar</p>
-                    </div>
-                </div>
-
-            </div>
+    <!-- Sección QR al final -->
+    <div style="text-align: center;">
+        <div class="qr-box">
+            <p style="margin-top:0; font-weight:bold; color: var(--primary);">Escanea para abrir en tu móvil:</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://proyecto-automatas-laz2.onrender.com" alt="QR Code">
         </div>
     </div>
 
@@ -303,21 +214,18 @@
 
             if (!data.valido) {
                 msgBox.innerText = data.mensaje;
-                msgBox.style.display = "block";
+                msgBox.style.display = "inline-block";
                 return;
             }
 
-            // Cargar AFN
             document.getElementById("img-afn").src = data.imagen_afn;
-            document.getElementById("img-afn").style.display = "block";
+            document.getElementById("img-afn").style.display = "inline-block";
             document.getElementById("placeholder-afn").style.display = "none";
 
-            // Cargar AFD
             document.getElementById("img-afd").src = data.imagen_afd;
-            document.getElementById("img-afd").style.display = "block";
+            document.getElementById("img-afd").style.display = "inline-block";
             document.getElementById("placeholder-afd").style.display = "none";
 
-            // Renderizar Tabla
             renderizarTabla(data.tabla_afd);
         }
 
@@ -351,17 +259,15 @@
             });
             const data = await res.json();
 
-            resBox.style.display = "block";
+            resBox.style.display = "inline-block";
             if (data.pertenece) {
-                resBox.style.backgroundColor = "var(--success-bg)";
-                resBox.style.color = "var(--success-text)";
+                resBox.className = "alerta-exito";
                 resBox.innerText = `¡Aceptada! La cadena pertenece al lenguaje.`;
             } else {
-                resBox.style.backgroundColor = "#fef2f2";
-                resBox.style.color = "#991b1b";
+                resBox.className = "alerta-error";
                 resBox.innerText = `Rechazada. La cadena NO pertenece al lenguaje.`;
             }
         }
     </script>
 </body>
-</html>
+</html></html>
