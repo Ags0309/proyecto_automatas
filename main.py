@@ -1,4 +1,5 @@
 import re
+import urllib.parse
 
 from flask import Flask, request, jsonify, render_template
 from graphviz import Digraph
@@ -152,9 +153,7 @@ def construir_automata(expresion_regular):
     }
 
 def nombrar_estados_afd(resultado_automata):
-    """Asigna un nombre corto (q0, q1, q2...) a cada conjunto de estados del AFD.
-    El estado inicial siempre es q0; el resto se ordena por contenido para que
-    el diagrama, la tabla y la simulación usen los mismos nombres."""
+    """Asigna un nombre corto (q0, q1, q2...) a cada conjunto de estados del AFD."""
     inicial = resultado_automata["estado_inicial_afd"]
     conjuntos = {inicial}
     for origen, simbolo, destino in resultado_automata["transiciones_afd"]:
@@ -180,8 +179,7 @@ def describir_afd(resultado_automata):
     }
 
 def simular_afd(cadena, afd):
-    """Simula una cadena en el AFD.
-    Devuelve si la acepta y el camino de estados recorrido."""
+    """Simula una cadena en el AFD."""
     nombres = afd["nombres"]
     estado_actual = afd["inicial"]
     camino = [{"estado": nombres[estado_actual], "simbolo": None}]
@@ -201,7 +199,6 @@ def simular_afd(cadena, afd):
     return estado_actual in afd["finales"], camino
 
 def cerradura_epsilon(estados, transiciones):
-    """Todos los estados alcanzables desde 'estados' usando solo transiciones ε."""
     resultado = set(estados)
     pendientes = list(estados)
     while pendientes:
@@ -213,7 +210,6 @@ def cerradura_epsilon(estados, transiciones):
     return resultado
 
 def mover_afn(estados, simbolo_leido, transiciones):
-    """Estados alcanzables desde 'estados' leyendo un símbolo."""
     return {destino for origen, simbolo, destino in transiciones
             if origen in estados and simbolo == simbolo_leido}
 
@@ -221,7 +217,6 @@ def formato_conjunto(conjunto):
     return "{" + ",".join(str(e) for e in sorted(conjunto)) + "}"
 
 def simular_afn(cadena, resultado_automata):
-    """Simula una cadena en el AFN. En cada paso hay un conjunto de estados activos."""
     transiciones = resultado_automata["transiciones"]
     actuales = cerradura_epsilon({resultado_automata["inicio_final"]}, transiciones)
     camino = [{"estado": formato_conjunto(actuales), "simbolo": None}]
@@ -237,7 +232,6 @@ def simular_afn(cadena, resultado_automata):
     return resultado_automata["fin_final"] in actuales, camino
 
 def armar_tabla(afd):
-    """Arma los datos de la tabla de transiciones para enviarlos al navegador."""
     simbolos_ordenados = sorted(alfabeto)
     filas = []
     for estado, nombre in sorted(afd["nombres"].items(), key=lambda p: int(p[1][1:])):
@@ -255,6 +249,7 @@ def armar_tabla(afd):
     return {"simbolos": simbolos_ordenados, "filas": filas}
 
 def generar_diagrama_afn(resultado_automata):
+    """Genera la URL del diagrama AFN usando la API de QuickChart."""
     grafo = Digraph()
     grafo.attr(rankdir="LR", bgcolor="white")
     grafo.attr("node", fontname="Helvetica", fontsize="12", color="#4f46e5", fontcolor="#1f2937")
@@ -264,10 +259,13 @@ def generar_diagrama_afn(resultado_automata):
     grafo.node(str(resultado_automata["fin_final"]), shape="doublecircle", style="filled", fillcolor="#d1fae5")
     for origen, simbolo, destino in resultado_automata["transiciones"]:
         grafo.edge(str(origen), str(destino), label="ε" if simbolo == "epsilon" else str(simbolo))
-    grafo.render("static/automata_afn", format="png", cleanup=True)
 
-def dibujar_afd(afd, archivo):
-    """Dibuja el AFD y lo guarda como PNG."""
+    # Obtenemos el código DOT en texto y creamos la URL para QuickChart
+    codigo_dot = grafo.source
+    return f"https://quickchart.io/graphviz?graph={urllib.parse.quote(codigo_dot)}"
+
+def dibujar_afd(afd):
+    """Genera la URL del diagrama AFD usando la API de QuickChart."""
     grafo = Digraph()
     grafo.attr(rankdir="LR", bgcolor="white")
     grafo.attr("node", fontname="Helvetica", fontsize="11", color="#4f46e5", fontcolor="#1f2937")
@@ -287,14 +285,15 @@ def dibujar_afd(afd, archivo):
     grafo.node("inicio", shape="point", width="0.1")
     grafo.edge("inicio", afd["nombres"][afd["inicial"]])
 
-    # Si hay varios símbolos entre los mismos estados, se junta en una sola flecha (a,b)
     etiquetas = {}
     for origen, simbolo, dest in afd["transiciones"]:
         etiquetas.setdefault((origen, dest), []).append(simbolo)
     for (origen, dest), lista in etiquetas.items():
         grafo.edge(afd["nombres"][origen], afd["nombres"][dest], label=",".join(sorted(lista)))
 
-    grafo.render(archivo, format="png", cleanup=True)
+    # Obtenemos el código DOT en texto y creamos la URL para QuickChart
+    codigo_dot = grafo.source
+    return f"https://quickchart.io/graphviz?graph={urllib.parse.quote(codigo_dot)}"
 
 ultimo_resultado = {}
 
@@ -317,13 +316,14 @@ def generar():
 
     afd = describir_afd(resultado)
 
-    generar_diagrama_afn(resultado)
-    dibujar_afd(afd, "static/automata_afd")
+    # Generamos las URLs en lugar de archivos físicos en disco
+    url_afn = generar_diagrama_afn(resultado)
+    url_afd = dibujar_afd(afd)
 
     return jsonify({
         "valido": True,
-        "imagen_afn": "/static/automata_afn.png",
-        "imagen_afd": "/static/automata_afd.png",
+        "imagen_afn": url_afn,
+        "imagen_afd": url_afd,
         "tabla_afd": armar_tabla(afd),
     })
 
