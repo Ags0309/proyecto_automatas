@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Generador de Autómatas</title>
+    <style>
+        :root {
+            /* Paleta */
+            --morado-noche: #16066A;
+            --ciruela: #280053;
+            --indigo-suave: #1A1A4A;
+            --violeta-medio: #4A2F9B;
+            --violeta: #5125D3;
+            --purpura: #6B00BE;
+            --magenta: #DC14CA;
+            --rosa: #FD88C1;
+            --carmesi: #E40068;
+            --turquesa: #10DCAC;
+            --cian: #14B2C1;
+            --amarillo: #ECD82D;
+
+            /* Tintes claros derivados de la paleta */
+            --fondo-1: #F3EFFF;
+            --fondo-2: #FFE8F4;
+            --fondo-3: #FFD9EC;
+            --lavanda: #EEE9FF;
+            --lavanda-fuerte: #E1D9FB;
+            --borde: #D9D0F7;
+
+            /* Tintes rosados */
+            --rosa-claro: #FFE3F1;
+            --rosa-fuerte: #FFCBE4;
+            --rosa-fondo: #FFF8FC;
+            --borde-rosa: #F7BFDD;
+
+            --color-texto: var(--indigo-suave);
+            --color-texto-suave: #5B5690;
+            --color-exito: #0A8F6F;
+            --color-error: var(--carmesi);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--fondo-1) 0%, var(--fondo-2) 55%, var(--fondo-3) 100%);
+            background-attachment: fixed;
+            color: var(--color-texto);
+            margin: 0;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .contenedor {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            background: linear-gradient(90deg, var(--purpura), var(--magenta), var(--carmesi));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .tarjeta {
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            background: #ffffff;
+            border: 1px solid var(--borde-rosa);
+            border-radius: 12px;
+            padding: 26px 24px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(220, 20, 202, 0.12);
+        }
+
+        .tarjeta::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--violeta), var(--magenta), var(--rosa));
+        }
+
+        h3 {
+            margin: 0 0 16px;
+            font-size: 1rem;
+            color: var(--purpura);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        h3::after {
+            content: "";
+            display: block;
+            width: 48px;
+            height: 3px;
+            margin: 8px auto 0;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--rosa), var(--magenta));
+        }
+
+        #er, #cadena {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 1.1rem;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            color: var(--color-texto);
+            border: 1px solid var(--borde-rosa);
+            border-radius: 8px;
+            margin-bottom: 14px;
+            background: var(--rosa-fondo);
+        }
+
+        #er::placeholder, #cadena::placeholder {
+            color: var(--color-texto-suave);
+            opacity: 0.6;
+        }
+
+        #er:focus, #cadena:focus {
+            outline: 2px solid var(--magenta);
+            outline-offset: 1px;
+        }
+
+        .teclado {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        button {
+            font-size: 1rem;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--lavanda);
+            color: var(--ciruela);
+            transition: background 0.15s ease;
+        }
+
+        button:hover {
+            background: var(--lavanda-fuerte);
+        }
+
+        button:focus-visible {
+            outline: 2px solid var(--magenta);
+            outline-offset: 2px;
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .tecla-simbolo {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            min-width: 44px;
+        }
+
+        .btn-principal {
+            background: linear-gradient(135deg, var(--purpura), var(--magenta));
+            color: white;
+        }
+        .btn-principal:hover {
+            background: linear-gradient(135deg, var(--magenta), var(--carmesi));
+        }
+
+        .btn-borrar {
+            background: var(--rosa-claro);
+            color: var(--carmesi);
+        }
+        .btn-borrar:hover {
+            background: var(--rosa-fuerte);
+        }
+
+        .ejemplos {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+            color: var(--color-texto-suave);
+        }
+
+        .ejemplo {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            padding: 4px 12px;
+            border: 1px solid var(--borde-rosa);
+            border-radius: 999px;
+            background: white;
+            color: var(--purpura);
+        }
+        .ejemplo:hover {
+            background: var(--rosa-claro);
+        }
+
+        .selector {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+            color: var(--color-texto-suave);
+        }
+
+        .opcion {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 6px 16px;
+            border: 1px solid var(--borde-rosa);
+            border-radius: 999px;
+            background: white;
+            color: var(--purpura);
+        }
+        .opcion:hover {
+            background: var(--rosa-claro);
+        }
+        .opcion.activo {
+            background: linear-gradient(135deg, var(--violeta), var(--magenta));
+            border-color: transparent;
+            color: white;
+        }
+        .opcion.activo:hover {
+            background: linear-gradient(135deg, var(--violeta), var(--magenta));
+        }
+
+        #mensaje {
+            font-weight: 600;
+            min-height: 1.2em;
+        }
+        #mensaje.exito { color: var(--color-exito); }
+        #mensaje.error { color: var(--color-error); }
+
+        #botones_automata {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        #botones_automata button {
+            background: var(--lavanda);
+            color: var(--violeta);
+            font-weight: 600;
+        }
+        #botones_automata button:hover {
+            background: var(--rosa-claro);
+        }
+        #botones_automata button.activo {
+            background: linear-gradient(135deg, var(--violeta), var(--magenta));
+            color: white;
+        }
+
+        #diagrama {
+            display: none;
+            max-width: 100%;
+            margin: 16px auto 0;
+            border: 1px solid var(--borde-rosa);
+            border-radius: 8px;
+            background: white;
+            padding: 8px;
+        }
+
+        #tabla_transiciones {
+            overflow-x: auto;
+        }
+        #tabla_transiciones table {
+            border-collapse: collapse;
+            margin: 16px auto 0;
+        }
+        #tabla_transiciones th, #tabla_transiciones td {
+            border: 1px solid var(--borde-rosa);
+            padding: 8px 14px;
+            text-align: center;
+        }
+        #tabla_transiciones th {
+            background: var(--rosa-claro);
+            color: var(--purpura);
+        }
+        #tabla_transiciones small {
+            color: var(--color-texto-suave);
+        }
+        .leyenda {
+            font-size: 0.85rem;
+            color: var(--color-texto-suave);
+            text-align: center;
+        }
+
+        #resultado_simulacion {
+            font-weight: 600;
+            font-size: 1.05rem;
+            min-height: 1.3em;
+        }
+        #resultado_simulacion.si { color: var(--color-exito); }
+        #resultado_simulacion.no { color: var(--color-error); }
+
+        #controles_paso {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .camino {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--rosa-fondo);
+            border: 1px solid var(--borde-rosa);
+            border-radius: 8px;
+            min-height: 20px;
+        }
+
+        .paso-estado {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid var(--violeta);
+            background: var(--lavanda);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--violeta);
+            flex-shrink: 0;
+        }
+
+        /* En el AFN cada paso es un conjunto de estados, por eso es más ancho */
+        .paso-estado.conjunto {
+            width: auto;
+            min-width: 44px;
+            padding: 0 14px;
+            border-radius: 22px;
+            white-space: nowrap;
+        }
+
+        .paso-estado.final-si {
+            border-color: var(--turquesa);
+            background: #D5F8EE;
+            color: #087A5E;
+            box-shadow: 0 0 0 3px rgba(16, 220, 172, 0.25);
+        }
+
+        .paso-estado.sin-camino {
+            border-color: var(--carmesi);
+            background: var(--rosa-claro);
+            color: var(--carmesi);
+        }
+
+        .paso-flecha {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--color-texto-suave);
+            flex-shrink: 0;
+        }
+        .paso-flecha .simbolo {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            background: var(--amarillo);
+            color: var(--ciruela);
+            border-radius: 4px;
+            padding: 1px 6px;
+            margin-bottom: 2px;
+        }
+        .paso-flecha .flecha {
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1>GENERADOR DE AUTÓMATAS</h1>
+
+        <div class="tarjeta">
+            <h3>Expresión Regular</h3>
+            <input type="text" id="er" readonly placeholder="Usa los botones para construir la ER">
+            <div class="teclado">
+                <button class="tecla-simbolo" onclick="agregar('a')">a</button>
+                <button class="tecla-simbolo" onclick="agregar('b')">b</button>
+                <button class="tecla-simbolo" onclick="agregar('c')">c</button>
+                <button class="tecla-simbolo" onclick="agregar('|')">|</button>
+                <button class="tecla-simbolo" onclick="agregar('*')">*</button>
+                <button class="tecla-simbolo" onclick="agregar('(')">(</button>
+                <button class="tecla-simbolo" onclick="agregar(')')">)</button>
+                <button class="btn-borrar" onclick="borrarUltimo()" title="Borra el último carácter">⌫</button>
+                <button class="btn-borrar" onclick="borrar()">Borrar todo</button>
+                <button class="btn-principal" onclick="generar()">Generar</button>
+            </div>
+            <div class="ejemplos">
+                <span>Ejemplos:</span>
+                <button class="ejemplo" onclick="cargarEjemplo('(a|b)*abb')">(a|b)*abb</button>
+                <button class="ejemplo" onclick="cargarEjemplo('a*')">a*</button>
+                <button class="ejemplo" onclick="cargarEjemplo('a(b|c)*')">a(b|c)*</button>
+                <button class="ejemplo" onclick="cargarEjemplo('a|b')">a|b</button>
+            </div>
+            <p id="mensaje"></p>
+
+            <div id="botones_automata">
+                <button id="btn_afn" onclick="mostrarAutomata('afn')">Ver AFN</button>
+                <button id="btn_afd" onclick="mostrarAutomata('afd')">Ver AFD</button>
+            </div>
+            <img id="diagrama" src="" alt="Diagrama del autómata">
+            <div id="tabla_transiciones"></div>
+        </div>
+
+        <div class="tarjeta">
+            <h3>Probar cadena</h3>
+            <input type="text" id="cadena" placeholder="Ej. abcbc">
+            <div class="selector">
+                <span>Probar con:</span>
+                <button id="sel_afn" class="opcion" onclick="elegirAutomata('afn')">AFN</button>
+                <button id="sel_afd" class="opcion activo" onclick="elegirAutomata('afd')">AFD</button>
+            </div>
+            <button class="btn-principal" onclick="probar()">Probar</button>
+            <p id="resultado_simulacion"></p>
+            <div id="controles_paso">
+                <button id="btn_anterior" onclick="pasoAnterior()">← Anterior</button>
+                <button id="btn_siguiente" onclick="pasoSiguiente()">Siguiente →</button>
+                <button onclick="verTodo()">Ver todo</button>
+            </div>
+            <div id="camino_simulacion" class="camino"></div>
+            <p id="nota_simulacion" class="leyenda"></p>
+        </div>
+    </div>
+
+    <script>
+        let urlAfn = "";
+        let urlAfd = "";
+        let tablaAfd = null;
+        let automataGenerado = false;
+
+        let automataElegido = "afd";
+        let tipoActual = "afd";
+        let caminoActual = [];
+        let pertenecioActual = false;
+        let pasoActual = 0;
+
+        function agregar(simbolo) {
+            document.getElementById("er").value += simbolo;
+        }
+
+        function borrar() {
+            document.getElementById("er").value = "";
+            limpiarResultados();
+        }
+
+        function borrarUltimo() {
+            const campo = document.getElementById("er");
+            campo.value = campo.value.slice(0, -1);
+        }
+
+        function cargarEjemplo(er) {
+            document.getElementById("er").value = er;
+            generar();
+        }
+
+        function limpiarResultados() {
+            automataGenerado = false;
+
+            const mensaje = document.getElementById("mensaje");
+            mensaje.innerText = "";
+            mensaje.className = "";
+
+            document.getElementById("botones_automata").style.display = "none";
+            document.getElementById("diagrama").style.display = "none";
+            document.getElementById("tabla_transiciones").innerHTML = "";
+
+            const resultado = document.getElementById("resultado_simulacion");
+            resultado.innerText = "";
+            resultado.className = "";
+            document.getElementById("controles_paso").style.display = "none";
+            document.getElementById("camino_simulacion").innerHTML = "";
+            document.getElementById("nota_simulacion").innerText = "";
+            caminoActual = [];
+        }
+
+        async function generar() {
+            const er = document.getElementById("er").value;
+            const respuesta = await fetch("/generar", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({er: er})
+            });
+            const datos = await respuesta.json();
+
+            const mensaje = document.getElementById("mensaje");
+
+            if (datos.valido) {
+                automataGenerado = true;
+                mensaje.innerText = "Autómata generado correctamente";
+                mensaje.className = "exito";
+
+                const marca = new Date().getTime();
+                urlAfn = datos.imagen_afn + "?t=" + marca;
+                urlAfd = datos.imagen_afd + "?t=" + marca;
+                tablaAfd = datos.tabla_afd;
+
+                document.getElementById("botones_automata").style.display = "flex";
+                mostrarAutomata("afn");
+            } else {
+                automataGenerado = false;
+                mensaje.innerText = datos.mensaje;
+                mensaje.className = "error";
+                document.getElementById("botones_automata").style.display = "none";
+                document.getElementById("diagrama").style.display = "none";
+                document.getElementById("tabla_transiciones").innerHTML = "";
+            }
+        }
+
+        function mostrarAutomata(tipo) {
+            const img = document.getElementById("diagrama");
+            const urls = {afn: urlAfn, afd: urlAfd};
+            img.src = urls[tipo];
+            img.style.display = "block";
+
+            ["afn", "afd"].forEach(t => {
+                document.getElementById("btn_" + t).classList.toggle("activo", t === tipo);
+            });
+
+            if (tipo === "afd") {
+                dibujarTabla(tablaAfd);
+            } else {
+                document.getElementById("tabla_transiciones").innerHTML = "";
+            }
+        }
+
+        function dibujarTabla(tabla) {
+            let html = "<table><thead><tr><th>Estado</th>";
+            tabla.simbolos.forEach(s => html += `<th>${s}</th>`);
+            html += "</tr></thead><tbody>";
+
+            tabla.filas.forEach(fila => {
+                const marca = (fila.inicial ? "→ " : "") + (fila.final ? "* " : "");
+                html += `<tr><td>${marca}${fila.estado} <small>${fila.detalle}</small></td>`;
+                tabla.simbolos.forEach(s => html += `<td>${fila.destinos[s]}</td>`);
+                html += "</tr>";
+            });
+
+            html += "</tbody></table><p class='leyenda'>→ estado inicial &nbsp; * estado final</p>";
+            document.getElementById("tabla_transiciones").innerHTML = html;
+        }
+
+        function elegirAutomata(tipo) {
+            automataElegido = tipo;
+
+            ["afn", "afd"].forEach(t => {
+                document.getElementById("sel_" + t).classList.toggle("activo", t === tipo);
+            });
+
+            // Si ya había un resultado en pantalla, se vuelve a simular con el autómata elegido
+            if (automataGenerado && caminoActual.length > 0) {
+                probar();
+            }
+        }
+
+        async function probar() {
+            const resultado = document.getElementById("resultado_simulacion");
+
+            if (!automataGenerado) {
+                resultado.innerText = "Primero genera un autómata";
+                resultado.className = "no";
+                document.getElementById("controles_paso").style.display = "none";
+                document.getElementById("camino_simulacion").innerHTML = "";
+                document.getElementById("nota_simulacion").innerText = "";
+                return;
+            }
+
+            const cadena = document.getElementById("cadena").value;
+            const respuesta = await fetch("/probar", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({cadena: cadena, automata: automataElegido})
+            });
+            const datos = await respuesta.json();
+
+            if (!datos.camino) {
+                resultado.innerText = datos.mensaje || "No se pudo simular la cadena";
+                resultado.className = "no";
+                return;
+            }
+
+            caminoActual = datos.camino;
+            pertenecioActual = datos.pertenece;
+            tipoActual = datos.automata;
+            pasoActual = 0;
+
+            document.getElementById("nota_simulacion").innerText = (tipoActual === "afn")
+                ? "En el AFN cada paso muestra el conjunto de estados en los que puede estar a la vez (incluye las transiciones ε)."
+                : "";
+
+            document.getElementById("controles_paso").style.display = "flex";
+            actualizarSimulacion();
+        }
+
+        function pasoSiguiente() {
+            if (pasoActual < caminoActual.length - 1) {
+                pasoActual++;
+                actualizarSimulacion();
+            }
+        }
+
+        function pasoAnterior() {
+            if (pasoActual > 0) {
+                pasoActual--;
+                actualizarSimulacion();
+            }
+        }
+
+        function verTodo() {
+            pasoActual = caminoActual.length - 1;
+            actualizarSimulacion();
+        }
+
+        function actualizarSimulacion() {
+            const ultimo = caminoActual.length - 1;
+            const terminado = pasoActual === ultimo;
+            const resultado = document.getElementById("resultado_simulacion");
+
+            if (terminado) {
+                if (pertenecioActual) {
+                    resultado.innerText = "✓ La cadena SI pertenece al lenguaje";
+                    resultado.className = "si";
+                } else {
+                    resultado.innerText = "✗ La cadena NO pertenece al lenguaje";
+                    resultado.className = "no";
+                }
+            } else {
+                resultado.innerText = `Paso ${pasoActual} de ${ultimo}`;
+                resultado.className = "";
+            }
+
+            document.getElementById("btn_anterior").disabled = pasoActual === 0;
+            document.getElementById("btn_siguiente").disabled = terminado;
+
+            dibujarCamino(
+                caminoActual.slice(0, pasoActual + 1),
+                pertenecioActual,
+                terminado,
+                tipoActual === "afn"
+            );
+        }
+
+        function dibujarCamino(camino, pertenece, mostrarVeredicto, esConjunto) {
+            const contenedor = document.getElementById("camino_simulacion");
+            contenedor.innerHTML = "";
+
+            camino.forEach((paso, indice) => {
+                if (paso.simbolo !== null) {
+                    const flecha = document.createElement("div");
+                    flecha.className = "paso-flecha";
+                    flecha.innerHTML = `<span class="simbolo">${paso.simbolo}</span><span class="flecha">&#8594;</span>`;
+                    contenedor.appendChild(flecha);
+                }
+
+                const circulo = document.createElement("div");
+                const esUltimo = indice === camino.length - 1;
+
+                if (paso.estado === null) {
+                    circulo.className = "paso-estado sin-camino";
+                    circulo.innerText = "✗";
+                } else {
+                    circulo.className = "paso-estado"
+                        + (esConjunto ? " conjunto" : "")
+                        + (esUltimo && pertenece && mostrarVeredicto ? " final-si" : "");
+                    circulo.innerText = paso.estado;
+                }
+                contenedor.appendChild(circulo);
+            });
+        }
+    </script>
+</body>
+</html>
